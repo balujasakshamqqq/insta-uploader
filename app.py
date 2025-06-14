@@ -4,6 +4,21 @@ from dotenv import load_dotenv
 import sqlite3
 from video_downloader import download_from_url_or_profile
 from scheduler import schedule_all_pending
+# --- TEMPORARY DATABASE INITIALIZATION ---
+import sqlite3
+
+conn = sqlite3.connect("database.db")
+conn.execute("""
+CREATE TABLE IF NOT EXISTS videos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    url TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued'
+)
+""")
+conn.commit()
+conn.close()
+# --- END DB INIT ---
+
 
 app = Flask(__name__)
 load_dotenv()
