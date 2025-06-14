@@ -4,21 +4,6 @@ from dotenv import load_dotenv
 import sqlite3
 from video_downloader import download_from_url_or_profile
 from scheduler import schedule_all_pending
-# --- TEMPORARY DATABASE INITIALIZATION ---
-import sqlite3
-
-conn = sqlite3.connect("database.db")
-conn.execute("""
-CREATE TABLE IF NOT EXISTS videos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'queued'
-)
-""")
-conn.commit()
-conn.close()
-# --- END DB INIT ---
-
 
 app = Flask(__name__)
 load_dotenv()
@@ -38,6 +23,9 @@ def init_db():
                             scheduled_time TEXT,
                             posted_time TEXT
                         )''')
+        conn.commit()
+
+init_db()  # ✅ Make sure DB is initialized on import (even in production)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -79,5 +67,4 @@ TEMPLATE = """<!doctype html>
 </ul>"""
 
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=5000)
