@@ -4,7 +4,6 @@ import hashlib
 import sqlite3
 import re
 from datetime import datetime
-
 from caption_generator import generate_caption
 from duplicate_checker import is_duplicate, register_hash
 
@@ -29,24 +28,19 @@ def download_from_url_or_profile(input_str):
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     print("📥 Starting download for:", input_str)
 
-    # Build yt-dlp command
-    if "tiktok.com" in input_str:
-        command = [
-            "yt-dlp",
-            "-f", "mp4",
-            input_str,
-            "-P", DOWNLOAD_DIR,
-            "-o", "%(title).40s.%(ext)s"
-        ]
-    else:
+    # Convert TikTok username to URL if needed
+    if "tiktok.com" not in input_str:
         input_str = input_str.strip().lstrip("@")
-        command = [
-            "yt-dlp",
-            "-f", "mp4",
-            f"https://www.tiktok.com/@{input_str}",
-            "-P", DOWNLOAD_DIR,
-            "-o", "%(title).40s.%(ext)s"
-        ]
+        input_str = f"https://www.tiktok.com/@{input_str}"
+
+    # yt-dlp command to force mp4 output
+    command = [
+        "yt-dlp",
+        "--merge-output-format", "mp4",
+        input_str,
+        "-P", DOWNLOAD_DIR,
+        "-o", "%(title).40s.%(ext)s"
+    ]
 
     result = subprocess.run(command, capture_output=True, text=True)
     print("🧾 yt-dlp stdout:", result.stdout)
