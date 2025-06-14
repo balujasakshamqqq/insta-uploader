@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 import sqlite3
 from video_downloader import download_from_url_or_profile
-from scheduler import schedule_all_pending
 from scheduler import start_background_scheduler
 
 
