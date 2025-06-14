@@ -1,26 +1,41 @@
-import sqlite3
 import time
+import threading
 import os
+import sqlite3
+from instagrapi import Client
 from datetime import datetime
-from instagram_uploader import post_video
 
 DB_PATH = "queue.db"
-VIDEO_DIR = "static/processed"
-POST_INTERVAL_MIN = int(os.getenv("POST_INTERVAL_MIN", "60"))
+DOWNLOAD_DIR = "static/processed"
 
-def schedule_all_pending():
-    from threading import Thread
-    Thread(target=run_scheduler, daemon=True).start()
+def upload_one_video():
+    with sqlite3.connect(DB_PATH) as conn:
+        video = conn.execute("SELECT * FROM videos WHERE status = 'queued' ORDER BY id LIMIT 1").fetchone()
+        if video:
+            video_id, source, filename, caption, status, hash_val, _, _ = video
+            video_path = os.path.join(DOWNLOAD_DIR, filename)
+
+            print("📤 Uploading:", filename)
+            cl = Client()
+            cl.load_settings("sessions.json")
+            cl.login_by_sessionid(os.getenv("INSTAGRAM_SESSIONID"))
+
+            try:
+                result = cl.clip_upload(video_path, caption=caption)
+                print("✅ Upload successful:", result.dict().get("pk"))
+                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                conn.execute("UPDATE videos SET status = 'posted', posted_time = ? WHERE id = ?", (now, video_id))
+                conn.commit()
+            except Exception as e:
+                print("❌ Upload failed:", e)
 
 def run_scheduler():
     while True:
-        with sqlite3.connect(DB_PATH) as conn:
-            row = conn.execute("SELECT id, filename, caption FROM videos WHERE status = 'queued' ORDER BY id ASC LIMIT 1").fetchone()
-            if row:
-                vid_id, filename, caption = row
-                filepath = os.path.join(VIDEO_DIR, filename)
-                success = post_video(filepath, caption)
-                if success:
-                    now = datetime.utcnow().isoformat()
-                    conn.execute("UPDATE videos SET status = 'posted', posted_time = ? WHERE id = ?", (now, vid_id))
-        time.sleep(POST_INTERVAL_MIN * 60)
+        upload_one_video()
+        print("⏳ Waiting 30 minutes...")
+        time.sleep(1800)
+
+def start_background_scheduler():
+    t = threading.Thread(target=run_scheduler)
+    t.daemon = True
+    t.start()
