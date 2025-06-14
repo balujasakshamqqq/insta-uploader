@@ -34,7 +34,6 @@ def index():
         tiktok_input = request.form.get("tiktok_input")
         if tiktok_input:
             download_from_url_or_profile(tiktok_input)
-            schedule_all_pending()
             return redirect("/")
     with sqlite3.connect(DB_PATH) as conn:
         queued = conn.execute("SELECT * FROM videos WHERE status = 'queued'").fetchall()
