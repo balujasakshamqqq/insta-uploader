@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import sqlite3
 from video_downloader import download_from_url_or_profile
 from scheduler import schedule_all_pending
+from scheduler import start_background_scheduler
+
 
 app = Flask(__name__)
 load_dotenv()
@@ -67,4 +69,7 @@ TEMPLATE = """<!doctype html>
 </ul>"""
 
 if __name__ == "__main__":
+    init_db()
+    start_background_scheduler()  # ← launches auto uploader every 30 mins
     app.run(host="0.0.0.0", port=5000)
+
