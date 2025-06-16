@@ -1,4 +1,6 @@
+
 import re
+import random
 
 def extract_keywords(filename):
     words = re.findall(r'\w+', filename.lower())
@@ -7,6 +9,14 @@ def extract_keywords(filename):
 
 def generate_caption(filename):
     keywords = extract_keywords(filename)
-    base_caption = "🚀 Trending Now on Insta! "
+    intro_lines = [
+        "🔥 Just Dropped!",
+        "🎥 Must-Watch Now!",
+        "🚀 Going Viral!",
+        "✨ You Can’t Miss This!",
+        "🎬 Trending on Insta!",
+        "💥 Watch Till the End!"
+    ]
+    intro = random.choice(intro_lines)
     hashtags = " ".join([f"#{w}" for w in keywords])
-    return f"{base_caption}\n{hashtags} #viral #foryou #reels"
+    return f"{intro}\n{hashtags} #viral #foryou #reels"
